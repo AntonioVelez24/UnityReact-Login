@@ -4,25 +4,34 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;  
+
 public class Login : MonoBehaviour
 {
-    public string url = "http://localhost/login2.php";
+    public string url = "http://localhost/Cloud-Proyecto/php-api/login2.php";
     public InputField emailInputField;
     public InputField passwordInputField;
     public Button loginButton;
+
     [SerializeField] LoginData loginData;
+
+    public TextMeshProUGUI mensajeTexto; 
+
     void Start()
     {
-        // Asegurate de que el boton tenga asignado el evento de click
         loginButton.onClick.AddListener(OnLoginButtonClicked);
+        mensajeTexto.text = ""; 
     }
+
     public void OnLoginButtonClicked()
     {
         loginData.email = emailInputField.text;
         loginData.password = passwordInputField.text;
         print(loginData.email + " " + loginData.password);
+        mensajeTexto.text = "Intentando iniciar sesión...";
         StartCoroutine(TryLogin());
     }
+
     IEnumerator TryLogin()
     {
         string jsonData = JsonUtility.ToJson(loginData);
@@ -32,21 +41,29 @@ public class Login : MonoBehaviour
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
         yield return request.SendWebRequest();
+
         if (request.result == UnityWebRequest.Result.ConnectionError ||
-        request.result == UnityWebRequest.Result.ProtocolError)
+            request.result == UnityWebRequest.Result.ProtocolError)
         {
             Debug.LogError("Error: " + request.error);
+            mensajeTexto.text = "Error de conexión: " + request.error;
         }
         else
         {
             Debug.Log("Respuesta: " + request.downloadHandler.text);
-            if (request.downloadHandler.text.Contains("success")) 
+            if (request.downloadHandler.text.Contains("success"))
             {
-                SceneManager.LoadScene("CorrectLogin");
+                mensajeTexto.text = "Inicio de sesión exitoso!";
+
+            }
+            else
+            {
+                mensajeTexto.text = "Email o contraseña incorrectos.";
             }
         }
     }
 }
+
 [System.Serializable]
 public class LoginData
 {
